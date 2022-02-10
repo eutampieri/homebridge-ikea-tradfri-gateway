@@ -94,8 +94,8 @@ module.exports = class Platform extends Gateway {
                     if (device.lightList && (expose['lightbulbs'] || (device.deviceInfo.manufacturer !== 'IKEA of Sweden' && expose['non-ikea-lightbulbs']))) {
                         var spectrum = device.lightList[0]._spectrum;
 
-                        if (bulbTypeOverrides[device.deviceInfo.serialNumber] !== undefined) {
-                            spectrum = bulbTypeOverrides[device.deviceInfo.serialNumber];
+                        if (bulbTypeOverrides[device.deviceInfo.modelNumber] !== undefined) {
+                            spectrum = bulbTypeOverrides[device.deviceInfo.modelNumber];
                         }
 
                         switch (spectrum) {
