@@ -1,14 +1,14 @@
 "use strict";
 
-var isArray          = require('yow/isArray');
+var isArray = require('yow/isArray');
 
-var Lightbulb          = require('./lightbulb.js');
+var Lightbulb = require('./lightbulb.js');
 var WarmWhiteLightbulb = require('./warm-white-lightbulb.js');
-var RgbLightbulb       = require('./rgb-lightbulb.js');
-var Outlet             = require('./outlet.js');
-var Blind             = require('./blind.js');
-var Gateway            = require('./gateway.js');
-var Ikea               = require('node-tradfri-client');
+var RgbLightbulb = require('./rgb-lightbulb.js');
+var Outlet = require('./outlet.js');
+var Blind = require('./blind.js');
+var Gateway = require('./gateway.js');
+var Ikea = require('node-tradfri-client');
 
 
 var Accessory, Service, Characteristic, UUIDGen;
@@ -68,6 +68,8 @@ module.exports = class Platform extends Gateway {
             expose['non-ikea-blinds'] = false;
         }
 
+        var bulbTypeOverrides = this.config.bulbTypeOverrides !== undefined ? this.config.bulbTypeOverrides : {};
+
         for (var id in this.gateway.devices) {
             var device = this.gateway.devices[id];
             var supportedDevice = undefined;
@@ -78,7 +80,7 @@ module.exports = class Platform extends Gateway {
                     // Make sure the device has a plugList and is to be exposed
                     if (device.plugList && (expose['outlets'] || (device.deviceInfo.manufacturer !== 'IKEA of Sweden' && expose['non-ikea-outlets'])))
                         supportedDevice = new Outlet(this, device);
-                    
+
                     break;
                 }
 
@@ -88,7 +90,11 @@ module.exports = class Platform extends Gateway {
                     if (device.lightList && (expose['lightbulbs'] || (device.deviceInfo.manufacturer !== 'IKEA of Sweden' && expose['non-ikea-lightbulbs']))) {
                         var spectrum = device.lightList[0]._spectrum;
 
-                        switch(spectrum) {
+                        if (bulbTypeOverrides[device.deviceInfo.serialNumber] !== undefined) {
+                            spectrum = bulbTypeOverrides[device.deviceInfo.serialNumber];
+                        }
+
+                        switch (spectrum) {
                             case 'white': {
                                 supportedDevice = new WarmWhiteLightbulb(this, device);
                                 break;
@@ -103,9 +109,9 @@ module.exports = class Platform extends Gateway {
                                 break;
                             }
                         }
-    
+
                     }
-    
+
                     break;
                 }
 
@@ -114,7 +120,7 @@ module.exports = class Platform extends Gateway {
                     // Make sure the device has a blindList and is to be exposed
                     if (device.blindList && (expose['blinds'] || (device.deviceInfo.manufacturer !== 'IKEA of Sweden' && expose['non-ikea-blinds'])))
                         supportedDevice = new Blind(this, device);
-                    
+
                     break;
                 }
             }
@@ -122,7 +128,7 @@ module.exports = class Platform extends Gateway {
             if (this.config.ignore && this.config.ignore.indexOf(id) > -1) {
                 supportedDevice = false;
             }
-            
+
             if (supportedDevice) {
                 this.devices[device.instanceId] = supportedDevice;
             }
@@ -141,23 +147,23 @@ module.exports = class Platform extends Gateway {
         this.connect().then(() => {
             return this.setup();
         })
-        .then(() => {
-            var accessories = [];
+            .then(() => {
+                var accessories = [];
 
-            for (var id in this.devices) {
-                accessories.push(this.devices[id]);
-            }
+                for (var id in this.devices) {
+                    accessories.push(this.devices[id]);
+                }
 
-            callback(accessories);
-        })
-        .catch((error) => {
-            // Display error and make sure to stop.
-            // If we just return an empty array, all our automation
-            // rules and scenarios will be removed from the Home App.
-            console.log(error);
-            process.exit(1);
-            throw error;
-        })
+                callback(accessories);
+            })
+            .catch((error) => {
+                // Display error and make sure to stop.
+                // If we just return an empty array, all our automation
+                // rules and scenarios will be removed from the Home App.
+                console.log(error);
+                process.exit(1);
+                throw error;
+            })
 
 
     }
