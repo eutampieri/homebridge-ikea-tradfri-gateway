@@ -68,7 +68,11 @@ module.exports = class Platform extends Gateway {
             expose['non-ikea-blinds'] = false;
         }
 
-        var bulbTypeOverrides = this.config.bulbTypeOverrides !== undefined ? this.config.bulbTypeOverrides : {};
+        var bulbTypeOverrides = {};
+
+        if (this.config.bulbTypeOverrides !== undefined) {
+            bulbTypeOverrides = this.config.bulbTypeOverrides;
+        }
 
         for (var id in this.gateway.devices) {
             var device = this.gateway.devices[id];
